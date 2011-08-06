@@ -14,10 +14,11 @@ public class delTmpUsers {
         	
         	System.out.println("Deleting: " + u);
         	myObj.delTUsers(u);
-        	int p = myObj.chckSSHD();
-        	if (p != 5511) {
-        		System.out.printf("WARNING: SSH listening on tcp/%d", p);
-        	}
         }
+        
+        int p = myObj.chckSSHD();
+    	if (p != 5511) {
+    		System.out.printf("WARNING: SSH listening on tcp/%d\n", p);
+    	}
     }
 }
