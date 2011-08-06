@@ -67,17 +67,27 @@ public class AuditServer {
     		DataInputStream in = new DataInputStream(fstream);
     			BufferedReader br = new BufferedReader(new InputStreamReader(in));
     		String line;
+    		int portStatus = 1;
+    		int prlStatus = 1;
     		
     		// walk through buffer and find the line that assigns the value to the Port variable
     		// and converts it to an integer then returns it.
     		while ((line = br.readLine()) != null) {
     			if (line.startsWith("Port")) {
     			  int p = Integer.parseInt(line.substring(5).trim());
-    			  return p;
-    			} else if (line.startsWith("#Port")) {
-    				int p = Integer.parseInt(line.substring(6).trim());
-    				return p;
+    			  if (p == 5511) {
+    				portStatus = 0;
+    			  }
+    			} else if (line.startsWith("PermitRootLogin")) {
+    				String prl = line.substring(16).trim();
+    				if (prl.equalsIgnoreCase("no")) {
+    					prlStatus = 0; 
+    				}
     			}
+    		}
+    		
+    		if (portStatus == 0 && prlStatus == 0) {
+    			return 0;
     		}
     		
     	} catch (IOException e) {
