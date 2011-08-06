@@ -1,6 +1,9 @@
-import java.io.*;
 import java.util.ArrayList;
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.DataInputStream;
+import java.io.InputStreamReader;
 
 public class AuditServer {
     // AuditServer houses various methods one might need to obtain information from a server's current configuration
@@ -31,6 +34,7 @@ public class AuditServer {
     }
     
     public void delTUsers(String user) {
+    	// This method takes in a username and removes it using the Linux userdel command
       String s = null;
       
       try {
@@ -53,6 +57,33 @@ public class AuditServer {
     	  System.out.println(e.getStackTrace());
     	  System.exit(-1);
       }
-      
+       
+    }
+    
+    public int chckSSHD() {
+    	// This method checks to make sure SSH is running on our standard port
+		try {
+    		FileInputStream fstream = new FileInputStream("/etc/ssh/sshd_config");
+    		DataInputStream in = new DataInputStream(fstream);
+    			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+    		String line;
+    		
+    		// walk through buffer and find the line that assigns the value to the Port variable
+    		// and converts it to an integer then returns it.
+    		while ((line = br.readLine()) != null) {
+    			if (line.startsWith("Port")) {
+    			  int p = Integer.parseInt(line.substring(5).trim());
+    			  return p;
+    			} else if (line.startsWith("#Port")) {
+    				int p = Integer.parseInt(line.substring(6).trim());
+    				return p;
+    			}
+    		}
+    		
+    	} catch (IOException e) {
+			System.err.println("There's been an error: " + e.getMessage());
+			System.exit(-1);
+    	}
+		return 1;
     }
 }
