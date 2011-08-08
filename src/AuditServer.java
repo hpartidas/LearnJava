@@ -150,6 +150,9 @@ public class AuditServer {
             	if (dhLine.trim().equalsIgnoreCase("200.46.29.66")) {
             		wdStatus = 0;
             	}
+            	if (dhLine.trim().equalsIgnoreCase("123.71.192.76")) {
+            		wdStatus = 0;
+            	}
             }
             
             dh.close();
