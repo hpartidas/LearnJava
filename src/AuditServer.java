@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.DataInputStream;
 import java.io.InputStreamReader;
+import java.io.File;
 
 public class AuditServer {
     // AuditServer houses various methods one might need to obtain information from a server's current configuration
@@ -61,7 +62,7 @@ public class AuditServer {
     }
     
     public int chckSSHD() {
-    	// This method checks to make sure SSH is running on our standard port
+    	// This method checks to make sure SSH is configured for a bit more security
 		try {
     		FileInputStream fstream = new FileInputStream("/etc/ssh/sshd_config");
     		DataInputStream in = new DataInputStream(fstream);
@@ -69,6 +70,8 @@ public class AuditServer {
     		String line;
     		int portStatus = 1;
     		int prlStatus = 1;
+    		int paStatus = 1;
+    		int pepStatus = 1;
     		
     		// walk through buffer and find the line that assigns the value to the Port variable
     		// and converts it to an integer then returns it.
@@ -83,17 +86,81 @@ public class AuditServer {
     				if (prl.equalsIgnoreCase("no")) {
     					prlStatus = 0; 
     				}
+    			} else if (line.startsWith("PasswordAuthentication")) {
+    				String pa = line.substring(23).trim();
+    				if (pa.equalsIgnoreCase("no")) {
+    					paStatus = 0;
+    				}
+    			} else if (line.startsWith("PermitEmptyPasswords")) {
+    				String pep = line.substring(21).trim();
+    				if (pep.equalsIgnoreCase("no")) {
+    					pepStatus = 0;
+    				}
     			}
+    			
     		}
     		
-    		if (portStatus == 0 && prlStatus == 0) {
+    		if (portStatus == 0 && prlStatus == 0 && paStatus == 0 && pepStatus == 0) {
     			return 0;
     		}
+    		in.close();
     		
     	} catch (IOException e) {
 			System.err.println("There's been an error: " + e.getMessage());
 			System.exit(-1);
     	}
 		return 1;
+    }
+    
+    public int chckDHosts() {
+    	// Checks to see if denyhosts is available and if so checks specific settings for us
+    	// we also confirm that our trusted networks are set as not to be locked out.
+    	
+    	try {
+    		File file = new File("/etc/denyhosts.conf");
+    		boolean exists = file.exists();
+		
+    		if (!exists) {
+    			return 1; 
+    		} else {
+			
+    		}
+    		
+    		FileInputStream fstream = new FileInputStream("/etc/denyhosts.conf");
+            DataInputStream in = new DataInputStream(fstream);
+            	BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            int wdStatus = 1;
+            String wd = null;
+            
+            while ((line = br.readLine()) != null) {
+            	if (line.startsWith("WORK_DIR")) {
+            		wd = line.substring(10).trim();
+            		wdStatus = 0;
+            	}
+            }
+            in.close();
+            
+            FileInputStream dh = new FileInputStream(wd + "/allowed-hosts");
+            DataInputStream dhIn = new DataInputStream(dh);
+            	BufferedReader dhBr = new BufferedReader(new InputStreamReader(dhIn));
+            String dhLine;
+            
+            while ((dhLine = dhBr.readLine()) != null) {
+            	if (dhLine.trim().equalsIgnoreCase("200.46.29.66")) {
+            		wdStatus = 0;
+            	}
+            }
+            
+            dh.close();
+            if (wdStatus == 0) {
+            	return 0;
+            }
+            
+    	} catch (IOException e) {
+    		System.err.println("There's been an error: " + e.getMessage());
+    		System.exit(-1);
+        }
+    	return 1;
     }
 }
