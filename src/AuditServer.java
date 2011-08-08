@@ -55,7 +55,7 @@ public class AuditServer {
     	  }
     	  
       } catch (IOException e) {
-    	  System.out.println(e.getStackTrace());
+    	  System.out.println("ERROR: " + e.getMessage());
     	  System.exit(-1);
       }
        
@@ -72,6 +72,9 @@ public class AuditServer {
     		int prlStatus = 1;
     		int paStatus = 1;
     		int pepStatus = 1;
+    		int craStatus = 1;
+    		int upStatus = 1;
+    		int agStatus = 1;
     		
     		// walk through buffer and find the line that assigns the value to the Port variable
     		// and converts it to an integer then returns it.
@@ -96,18 +99,32 @@ public class AuditServer {
     				if (pep.equalsIgnoreCase("no")) {
     					pepStatus = 0;
     				}
+    			} else if (line.startsWith("ChallengeResponseAuthentication")) {
+    				String cra = line.substring(32).trim();
+    				if (cra.equalsIgnoreCase("no")) {
+    					craStatus = 0;
+    				}
+    			} else if (line.startsWith("UsePAM")) {
+    				String up = line.substring(7).trim();
+    				if (up.equalsIgnoreCase("no")) {
+    					upStatus = 0;
+    				}
+    			} else if (line.startsWith("AllowGroups")) {
+    				String ag = line.substring(11).trim();
+    				if (ag.equalsIgnoreCase("avetti-users")) {
+    					agStatus = 0;
+    				}
     			}
     			
     		}
     		
-    		if (portStatus == 0 && prlStatus == 0 && paStatus == 0 && pepStatus == 0) {
+    		if (portStatus == 0 && prlStatus == 0 && paStatus == 0 && pepStatus == 0 && craStatus == 0 && upStatus == 0 && agStatus == 0) {
     			return 0;
     		}
     		in.close();
     		
     	} catch (IOException e) {
-			System.err.println("There's been an error: " + e.getMessage());
-			System.exit(-1);
+			return 1;
     	}
 		return 1;
     }
@@ -161,7 +178,6 @@ public class AuditServer {
             }
             
     	} catch (IOException e) {
-    		System.err.println("There's been an error: " + e.getMessage());
     		return 1;
         }
     	return 1;
