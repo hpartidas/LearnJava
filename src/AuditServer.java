@@ -162,7 +162,7 @@ public class AuditServer {
             
     	} catch (IOException e) {
     		System.err.println("There's been an error: " + e.getMessage());
-    		System.exit(-1);
+    		return 1;
         }
     	return 1;
     }
