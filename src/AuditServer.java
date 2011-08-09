@@ -117,16 +117,17 @@ public class AuditServer {
     			}
     			
     		}
-    		
+
+    		in.close();
     		if (portStatus == 0 && prlStatus == 0 && paStatus == 0 && pepStatus == 0 && craStatus == 0 && upStatus == 0 && agStatus == 0) {
     			return 0;
+    		} else {
+    			return 1;
     		}
-    		in.close();
     		
     	} catch (IOException e) {
 			return 1;
     	}
-		return 1;
     }
     
     public int chckDHosts() {
@@ -134,17 +135,8 @@ public class AuditServer {
     	// we also confirm that our trusted networks are set as not to be locked out.
     	
     	try {
-    		File file = new File("/etc/denyhosts.conf");
-    		boolean exists = file.exists();
-		
-    		if (!exists) {
-    			return 1; 
-    		} else {
-			
-    		}
-    		
     		FileInputStream fstream = new FileInputStream("/etc/denyhosts.conf");
-            DataInputStream in = new DataInputStream(fstream);
+    		DataInputStream in = new DataInputStream(fstream);
             	BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String line;
             int wdStatus = 1;
@@ -158,28 +150,30 @@ public class AuditServer {
             }
             in.close();
             
-            FileInputStream dh = new FileInputStream(wd + "/allowed-hosts");
-            DataInputStream dhIn = new DataInputStream(dh);
-            	BufferedReader dhBr = new BufferedReader(new InputStreamReader(dhIn));
-            String dhLine;
+            if (wdStatus == 0) {
+            	FileInputStream dh = new FileInputStream(wd + "/allowed-hosts");
+            	DataInputStream dhIn = new DataInputStream(dh);
+            		BufferedReader dhBr = new BufferedReader(new InputStreamReader(dhIn));
+            	String dhLine;
             
-            while ((dhLine = dhBr.readLine()) != null) {
-            	if (dhLine.trim().equalsIgnoreCase("200.46.29.66")) {
-            		wdStatus = 0;
+            	wdStatus = 1;
+            	while ((dhLine = dhBr.readLine()) != null) {
+            		if (dhLine.trim().equalsIgnoreCase("200.46.29.66")) {
+            			wdStatus = 0;
+            		}
+            		if (dhLine.trim().equalsIgnoreCase("123.71.192.76")) {
+            			wdStatus = 0;
+            		}
             	}
-            	if (dhLine.trim().equalsIgnoreCase("123.71.192.76")) {
-            		wdStatus = 0;
-            	}
-            }
+    		}
             
-            dh.close();
             if (wdStatus == 0) {
             	return 0;
+            } else {
+            	return 1;
             }
-            
     	} catch (IOException e) {
     		return 1;
         }
-    	return 1;
     }
 }
